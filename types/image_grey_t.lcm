@@ -1,0 +1,7 @@
+struct image_grey_t {
+	int64_t utime;	//Timestamp in us
+	int32_t rows;	//Rows in image matrix
+	int32_t cols; 	//Cols in image matrix
+	
+	byte data[rows][cols];
+}
