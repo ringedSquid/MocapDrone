@@ -319,8 +319,12 @@ CMakeFiles/camera_feed_process.dir/src/camera_feed_process.cpp.o: ../src/camera_
   /usr/include/opencv4/opencv2/imgcodecs.hpp \
   /usr/include/opencv4/opencv2/highgui.hpp \
   /usr/include/opencv4/opencv2/videoio.hpp \
-  /usr/include/c++/11/iostream
+  /usr/include/c++/11/iostream \
+  project_types/image_points_t.hpp \
+  /usr/local/include/lcm/lcm_coretypes.h
 
+
+/usr/local/include/lcm/lcm_coretypes.h:
 
 /usr/include/opencv4/opencv2/highgui.hpp:
 
@@ -713,6 +717,8 @@ CMakeFiles/camera_feed_process.dir/src/camera_feed_process.cpp.o: ../src/camera_
 /usr/include/c++/11/bits/stl_iterator_base_funcs.h:
 
 /usr/include/c++/11/clocale:
+
+project_types/image_points_t.hpp:
 
 /usr/include/wchar.h:
 

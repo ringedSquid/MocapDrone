@@ -66,14 +66,14 @@ include CMakeFiles/type_definitions-cpp.sources.dir/compiler_depend.make
 # Include the progress variables for this target.
 include CMakeFiles/type_definitions-cpp.sources.dir/progress.make
 
-CMakeFiles/type_definitions-cpp.sources: image_types/image_grey_t.hpp
+CMakeFiles/type_definitions-cpp.sources: project_types/image_points_t.hpp
 
-image_types/image_grey_t.hpp: ../types/image_grey_t.lcm
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pilot/Documents/MocapDrone/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating image_types/image_grey_t.hpp"
-	/usr/local/bin/lcm-gen --cpp --cpp-hpath /home/pilot/Documents/MocapDrone/build /home/pilot/Documents/MocapDrone/types/image_grey_t.lcm
+project_types/image_points_t.hpp: ../types/image_points_t.lcm
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pilot/Documents/MocapDrone/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating project_types/image_points_t.hpp"
+	/usr/local/bin/lcm-gen --cpp --cpp-hpath /home/pilot/Documents/MocapDrone/build /home/pilot/Documents/MocapDrone/types/image_points_t.lcm
 
 type_definitions-cpp.sources: CMakeFiles/type_definitions-cpp.sources
-type_definitions-cpp.sources: image_types/image_grey_t.hpp
+type_definitions-cpp.sources: project_types/image_points_t.hpp
 type_definitions-cpp.sources: CMakeFiles/type_definitions-cpp.sources.dir/build.make
 .PHONY : type_definitions-cpp.sources
 

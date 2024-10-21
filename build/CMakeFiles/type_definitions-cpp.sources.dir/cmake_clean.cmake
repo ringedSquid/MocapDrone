@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/type_definitions-cpp.sources"
-  "image_types/image_grey_t.hpp"
+  "project_types/image_points_t.hpp"
 )
 
 # Per-language clean rules from dependency scanning.

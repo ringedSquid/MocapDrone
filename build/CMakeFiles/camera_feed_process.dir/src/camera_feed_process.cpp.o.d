@@ -262,4 +262,6 @@ CMakeFiles/camera_feed_process.dir/src/camera_feed_process.cpp.o: \
  /usr/include/opencv4/opencv2/imgproc/segmentation.hpp \
  /usr/include/opencv4/opencv2/imgcodecs.hpp \
  /usr/include/opencv4/opencv2/highgui.hpp \
- /usr/include/opencv4/opencv2/videoio.hpp /usr/include/c++/11/iostream
+ /usr/include/opencv4/opencv2/videoio.hpp /usr/include/c++/11/iostream \
+ /home/pilot/Documents/MocapDrone/build/project_types/image_points_t.hpp \
+ /usr/local/include/lcm/lcm_coretypes.h
