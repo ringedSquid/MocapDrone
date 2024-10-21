@@ -12,6 +12,8 @@ include(${LCM_USE_FILE})
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
+
+
 # Handle types
 FILE(
     GLOB 
@@ -32,8 +34,6 @@ target_include_directories(
     )
 
 
-add_executable(send_image "src/send_image.cpp")
-lcm_target_link_libraries(send_image type_definitions-cpp ${LCM_NAMESPACE}lcm ${OpenCV_LIBS})
+add_executable(camera_feed_process "src/camera_feed_process.cpp")
+lcm_target_link_libraries(camera_feed_process type_definitions-cpp ${LCM_NAMESPACE}lcm ${OpenCV_LIBS})
 
-add_executable(listen_image "src/listen_image.cpp")
-lcm_target_link_libraries(listen_image type_definitions-cpp ${LCM_NAMESPACE}lcm ${OpenCV_LIBS})
