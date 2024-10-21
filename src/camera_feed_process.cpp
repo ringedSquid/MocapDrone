@@ -62,14 +62,11 @@ int main() {
     LCM lcm;
     if (!lcm.good()) {
 		return 1;
-	}
+    }
 
     //This is supposed to be the camera stream 
     Mat feed = imread("img.png", IMREAD_COLOR);
     GaussianBlur(feed, feed, GAUSSIAN_KERNEL_S, GAUSSIAN_SD, GAUSSIAN_SD, BORDER_DEFAULT);
-
-    //imshow("img", feed);
-    //waitKey(0);
 
     image_points_t out_points;
 
