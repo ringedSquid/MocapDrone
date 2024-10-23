@@ -319,12 +319,15 @@ CMakeFiles/camera_pipeline.dir/src/camera_pipeline.cpp.o: ../src/camera_pipeline
   /usr/include/opencv4/opencv2/imgcodecs.hpp \
   /usr/include/opencv4/opencv2/highgui.hpp \
   /usr/include/opencv4/opencv2/videoio.hpp \
+  /usr/include/c++/11/math.h \
   /usr/include/c++/11/iostream \
   project_types/image_points_t.hpp \
   /usr/local/include/lcm/lcm_coretypes.h
 
 
 /usr/local/include/lcm/lcm_coretypes.h:
+
+/usr/include/c++/11/math.h:
 
 /usr/include/opencv4/opencv2/highgui.hpp:
 
