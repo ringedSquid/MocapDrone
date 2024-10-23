@@ -1,5 +1,5 @@
-CMakeFiles/camera_feed_process.dir/src/camera_feed_process.cpp.o: \
- /home/pilot/Documents/MocapDrone/src/camera_feed_process.cpp \
+CMakeFiles/camera_pipeline.dir/src/camera_pipeline.cpp.o: \
+ /home/pilot/Documents/MocapDrone/src/camera_pipeline.cpp \
  /usr/include/stdc-predef.h /usr/local/include/lcm/lcm-cpp.hpp \
  /usr/include/c++/11/cstdio \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \

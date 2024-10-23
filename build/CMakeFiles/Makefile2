@@ -63,7 +63,7 @@ CMAKE_BINARY_DIR = /home/pilot/Documents/MocapDrone/build
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/camera_feed_process.dir/all
+all: CMakeFiles/camera_pipeline.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -72,7 +72,7 @@ preinstall:
 
 # The main recursive "clean" target.
 clean: CMakeFiles/type_definitions-cpp.sources.dir/clean
-clean: CMakeFiles/camera_feed_process.dir/clean
+clean: CMakeFiles/camera_pipeline.dir/clean
 .PHONY : clean
 
 #=============================================================================
@@ -102,30 +102,30 @@ CMakeFiles/type_definitions-cpp.sources.dir/clean:
 .PHONY : CMakeFiles/type_definitions-cpp.sources.dir/clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/camera_feed_process.dir
+# Target rules for target CMakeFiles/camera_pipeline.dir
 
 # All Build rule for target.
-CMakeFiles/camera_feed_process.dir/all: CMakeFiles/type_definitions-cpp.sources.dir/all
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/camera_feed_process.dir/build.make CMakeFiles/camera_feed_process.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/camera_feed_process.dir/build.make CMakeFiles/camera_feed_process.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/pilot/Documents/MocapDrone/build/CMakeFiles --progress-num=1,2 "Built target camera_feed_process"
-.PHONY : CMakeFiles/camera_feed_process.dir/all
+CMakeFiles/camera_pipeline.dir/all: CMakeFiles/type_definitions-cpp.sources.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/camera_pipeline.dir/build.make CMakeFiles/camera_pipeline.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/camera_pipeline.dir/build.make CMakeFiles/camera_pipeline.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/pilot/Documents/MocapDrone/build/CMakeFiles --progress-num=1,2 "Built target camera_pipeline"
+.PHONY : CMakeFiles/camera_pipeline.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/camera_feed_process.dir/rule: cmake_check_build_system
+CMakeFiles/camera_pipeline.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/pilot/Documents/MocapDrone/build/CMakeFiles 3
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/camera_feed_process.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/camera_pipeline.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/pilot/Documents/MocapDrone/build/CMakeFiles 0
-.PHONY : CMakeFiles/camera_feed_process.dir/rule
+.PHONY : CMakeFiles/camera_pipeline.dir/rule
 
 # Convenience name for target.
-camera_feed_process: CMakeFiles/camera_feed_process.dir/rule
-.PHONY : camera_feed_process
+camera_pipeline: CMakeFiles/camera_pipeline.dir/rule
+.PHONY : camera_pipeline
 
 # clean rule for target.
-CMakeFiles/camera_feed_process.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/camera_feed_process.dir/build.make CMakeFiles/camera_feed_process.dir/clean
-.PHONY : CMakeFiles/camera_feed_process.dir/clean
+CMakeFiles/camera_pipeline.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/camera_pipeline.dir/build.make CMakeFiles/camera_pipeline.dir/clean
+.PHONY : CMakeFiles/camera_pipeline.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

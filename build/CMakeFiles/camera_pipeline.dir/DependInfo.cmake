@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/pilot/Documents/MocapDrone/src/camera_feed_process.cpp" "CMakeFiles/camera_feed_process.dir/src/camera_feed_process.cpp.o" "gcc" "CMakeFiles/camera_feed_process.dir/src/camera_feed_process.cpp.o.d"
+  "/home/pilot/Documents/MocapDrone/src/camera_pipeline.cpp" "CMakeFiles/camera_pipeline.dir/src/camera_pipeline.cpp.o" "gcc" "CMakeFiles/camera_pipeline.dir/src/camera_pipeline.cpp.o.d"
   )
 
 # Targets to which this target links.

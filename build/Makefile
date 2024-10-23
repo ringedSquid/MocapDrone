@@ -130,41 +130,41 @@ type_definitions-cpp.sources/fast:
 .PHONY : type_definitions-cpp.sources/fast
 
 #=============================================================================
-# Target rules for targets named camera_feed_process
+# Target rules for targets named camera_pipeline
 
 # Build rule for target.
-camera_feed_process: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 camera_feed_process
-.PHONY : camera_feed_process
+camera_pipeline: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 camera_pipeline
+.PHONY : camera_pipeline
 
 # fast build rule for target.
-camera_feed_process/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/camera_feed_process.dir/build.make CMakeFiles/camera_feed_process.dir/build
-.PHONY : camera_feed_process/fast
+camera_pipeline/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/camera_pipeline.dir/build.make CMakeFiles/camera_pipeline.dir/build
+.PHONY : camera_pipeline/fast
 
-src/camera_feed_process.o: src/camera_feed_process.cpp.o
-.PHONY : src/camera_feed_process.o
+src/camera_pipeline.o: src/camera_pipeline.cpp.o
+.PHONY : src/camera_pipeline.o
 
 # target to build an object file
-src/camera_feed_process.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/camera_feed_process.dir/build.make CMakeFiles/camera_feed_process.dir/src/camera_feed_process.cpp.o
-.PHONY : src/camera_feed_process.cpp.o
+src/camera_pipeline.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/camera_pipeline.dir/build.make CMakeFiles/camera_pipeline.dir/src/camera_pipeline.cpp.o
+.PHONY : src/camera_pipeline.cpp.o
 
-src/camera_feed_process.i: src/camera_feed_process.cpp.i
-.PHONY : src/camera_feed_process.i
+src/camera_pipeline.i: src/camera_pipeline.cpp.i
+.PHONY : src/camera_pipeline.i
 
 # target to preprocess a source file
-src/camera_feed_process.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/camera_feed_process.dir/build.make CMakeFiles/camera_feed_process.dir/src/camera_feed_process.cpp.i
-.PHONY : src/camera_feed_process.cpp.i
+src/camera_pipeline.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/camera_pipeline.dir/build.make CMakeFiles/camera_pipeline.dir/src/camera_pipeline.cpp.i
+.PHONY : src/camera_pipeline.cpp.i
 
-src/camera_feed_process.s: src/camera_feed_process.cpp.s
-.PHONY : src/camera_feed_process.s
+src/camera_pipeline.s: src/camera_pipeline.cpp.s
+.PHONY : src/camera_pipeline.s
 
 # target to generate assembly for a file
-src/camera_feed_process.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/camera_feed_process.dir/build.make CMakeFiles/camera_feed_process.dir/src/camera_feed_process.cpp.s
-.PHONY : src/camera_feed_process.cpp.s
+src/camera_pipeline.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/camera_pipeline.dir/build.make CMakeFiles/camera_pipeline.dir/src/camera_pipeline.cpp.s
+.PHONY : src/camera_pipeline.cpp.s
 
 # Help Target
 help:
@@ -175,10 +175,10 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... type_definitions-cpp.sources"
-	@echo "... camera_feed_process"
-	@echo "... src/camera_feed_process.o"
-	@echo "... src/camera_feed_process.i"
-	@echo "... src/camera_feed_process.s"
+	@echo "... camera_pipeline"
+	@echo "... src/camera_pipeline.o"
+	@echo "... src/camera_pipeline.i"
+	@echo "... src/camera_pipeline.s"
 .PHONY : help
 
 
