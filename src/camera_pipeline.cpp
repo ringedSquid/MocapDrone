@@ -116,6 +116,10 @@ vector<vector<float>> points_to_float(vector<Point2d> src) {
     return out;
 }
 
+class FeedProcess : public ParallelLoopBody {
+    priv
+}
+
 int main() {
     /*
     Pipeline:
