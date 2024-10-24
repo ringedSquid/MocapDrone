@@ -34,6 +34,6 @@ target_include_directories(
     )
 
 
-add_executable(camera_feed_process "src/camera_feed_process.cpp")
-lcm_target_link_libraries(camera_feed_process type_definitions-cpp ${LCM_NAMESPACE}lcm ${OpenCV_LIBS})
+add_executable(camera_pipeline "src/camera_pipeline.cpp")
+lcm_target_link_libraries(camera_pipeline type_definitions-cpp ${LCM_NAMESPACE}lcm ${OpenCV_LIBS})
 

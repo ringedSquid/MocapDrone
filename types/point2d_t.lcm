@@ -1,0 +1,6 @@
+package project_types;
+
+struct point2d_t {
+    double x;
+    double y;
+}
