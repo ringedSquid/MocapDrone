@@ -27,21 +27,19 @@ using namespace lcm;
 #define GAUSSIAN_KERNEL_S Size(5, 5)
 
 
-Mat draw_points(Mat source, vector<Point2d> points) {
+void draw_points(Mat *source, vector<Point2d> points) {
     for (int i=0; i<points.size(); i++) {
-        circle(source, points[i], 1, Scalar(0, 0, 255), -1);
-        putText(source, format("{%.1f, %.1f}", points[i].x, points[i].y), Point2d(points[i].x, points[i].y-10), FONT_HERSHEY_SIMPLEX, 0.3, Scalar(0, 0, 255), 1);
+        circle(*source, points[i], 1, Scalar(0, 0, 255), -1);
+        putText(*source, format("{%.1f, %.1f}", points[i].x, points[i].y), Point2d(points[i].x, points[i].y-10), FONT_HERSHEY_SIMPLEX, 0.3, Scalar(0, 0, 255), 1);
     }
-    return source;
 }
 
-Mat draw_lines(Mat source, vector<vector<double>> lines) {
+void draw_lines(Mat *source, vector<vector<double>> lines) {
     for (int i=0; i<lines.size(); i++) {
         Point2d p0 = Point2d(0, -lines[i][2]/lines[i][1]);
-        Point2d p1 = Point2d(source.cols, -source.cols*(lines[i][0]/lines[i][1]) - lines[i][2]/lines[i][1]);
-        line(source, p0, p1, Scalar(0, 0, 255), 1);
+        Point2d p1 = Point2d(source->cols, -source->cols*(lines[i][0]/lines[i][1]) - lines[i][2]/lines[i][1]);
+        line(*source, p0, p1, Scalar(0, 0, 255), 1);
     }
-    return source;
 }
 
 double dist_point_line(Point2d point, vector<double> line) {
@@ -131,6 +129,7 @@ int main() {
     }
     printf("lcm\n");
     VideoCapture cap(0);
+    cap.set(CAP_PROP_BUFFERSIZE, 2);
     printf("cam\n");
     //namedWindow("pooP");
     if (!cap.isOpened()){ //This section prompt an error message if no video stream is found//
@@ -142,6 +141,7 @@ int main() {
     //This is supposed to be the camera stream 
     //Mat feed = imread("img.png", IMREAD_COLOR);
     Mat feed;
+    Mat feed_small;
     //GaussianBlur(feed, feed, GAUSSIAN_KERNEL_S, GAUSSIAN_SD, GAUSSIAN_SD, BORDER_DEFAULT);
     
     //FileStorage fs(CAMERA_DATA_PATH, FileStorage::READ);
@@ -166,6 +166,18 @@ int main() {
     }
     */
 
+    Mat feed_images[NUM_CAMS];
+    Rect feed_splits[NUM_CAMS] = {Rect(1, 1, 958, 538), Rect(961, 1, 958, 538), Rect(1, 541, 958, 538), Rect(961, 541, 958, 538)};
+    vector<Point2d> u_points[NUM_CAMS];
+    vector<vector<double>> epipolar_lines[NUM_CAMS];
+    //0->1, 1->2, 2->3, 3->0
+    vector<vector<Point2d>> corresponding_points[NUM_CAMS];
+
+    //Output for lcm
+    corresponding_points_t out;
+    out.n = NUM_CAMS;
+    out.pairs.resize(out.n);
+
     //fs.release();
 
     //Flags
@@ -175,22 +187,9 @@ int main() {
     bool DRAW_POINTS = true;
 
     while (true) {
-        Mat feed_images[NUM_CAMS];
-        Rect feed_splits[NUM_CAMS] = {Rect(1, 1, 958, 538), Rect(961, 1, 958, 538), Rect(1, 541, 958, 538), Rect(961, 541, 958, 538)};
-        vector<Point2d> u_points[NUM_CAMS];
-        vector<vector<double>> epipolar_lines[NUM_CAMS];
-        //0->1, 1->2, 2->3, 3->0
-        vector<vector<Point2d>> corresponding_points[NUM_CAMS];
-
-        //Output for lcm
-        corresponding_points_t out;
-        out.n = NUM_CAMS;
-        out.pairs.resize(out.n);
 
         //Read in frame
         cap >> feed;
-        printf("cool\n");
-        printf("%d, %d\n", feed.rows, feed.cols);
 
         if (feed.empty()) {
             break;
@@ -200,20 +199,17 @@ int main() {
         for (int i=0; i<NUM_CAMS; i++) {
             feed_images[i] = Mat(feed, feed_splits[i]);
             u_points[i] = get_points(feed_images[i]);
-            if (DRAW_POINTS) feed_images[i] = draw_points(feed_images[i], u_points[i]);
+            if (DRAW_POINTS) draw_points(&feed_images[i], u_points[i]);
         }
-        printf("split\n");
-
+        
+        /*
         //Create epipolar lines + find corresponding points
         for (int i=0; i<NUM_CAMS; i++) {
-            printf("size: %d\n", u_points[i].size());
             int r = (i+1)%NUM_CAMS;
             if ((u_points[i].size() == 0) || (u_points[r].size() == 0)) {
-                printf("wow\n");
                 continue;
             }
             epipolar_lines[i] = vector<vector<double>>(u_points[i].size());
-            printf("init\n");
             for (int k=0; k<u_points[i].size(); k++) {
                 Point2d p_r;
                 if (CALIBRATE_CAPTURE_POINTS) p_r = u_points[r][0]; 
@@ -225,16 +221,13 @@ int main() {
                     //Search through right image for corresponding points
                     p_r = find_corresponding_point(u_points[r], epipolar_lines[i][k]);
                 }
-                printf("cap\n");
 
                 //Add pair of corresponding points
                 if (p_r.x > 0) corresponding_points[i].push_back(vector<Point2d>{u_points[i][k], p_r});
                 
             }
-            if (DRAW_EPIPOLAR_LINES) feed_images[r] = draw_lines(feed_images[r], epipolar_lines[i]);
+            if (DRAW_EPIPOLAR_LINES) draw_lines(&feed_images[r], epipolar_lines[i]);
         }
-
-        printf("epipole\n");
 
         //Write to output datatype
         for (int i=0; i<NUM_CAMS; i++) {
@@ -242,27 +235,24 @@ int main() {
             out.pairs[i].points.resize(out.pairs[i].n);
             //Pairs of points
             for (int k=0; k<corresponding_points[i].size(); k++) {
-                printf("poop2 %d\n", corresponding_points[i][k].size());
                 if (corresponding_points[i].size() >= 2) {
-                    printf("p1 %d, %d\n", out.pairs[i].n, corresponding_points[i].size());
                     out.pairs[i].points[k][0].x = corresponding_points[i][k][0].x;
                     out.pairs[i].points[k][0].y = corresponding_points[i][k][0].y;
-                    printf("p2\n");
                     out.pairs[i].points[k][1].x = corresponding_points[i][k][1].x;
                     out.pairs[i].points[k][1].y = corresponding_points[i][k][1].y;
                 }
-                printf("poop4\n");
             }
-            printf("poop3\n");
         }
-
-        imshow("", feed);
-        char c = (char)waitKey(5);//Allowing 25 milliseconds frame processing time and initiating break condition//
+        */
+        resize(feed, feed_small, Size(960.0, 540.0), 0, 0);
+        imshow("", feed_small);
+        char c = (char)waitKey(25);//Allowing 25 milliseconds frame processing time and initiating break condition//
         if (c == 27){ //If 'Esc' is entered break the loop//
             break;
         }
 
         lcm.publish(CHANNEL_NAME, &out);
+        
     }
 
     cap.release();
