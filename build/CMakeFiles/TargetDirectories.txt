@@ -1,4 +1,0 @@
-/home/pilot/Documents/MocapDrone/build/CMakeFiles/type_definitions-cpp.sources.dir
-/home/pilot/Documents/MocapDrone/build/CMakeFiles/camera_pipeline.dir
-/home/pilot/Documents/MocapDrone/build/CMakeFiles/edit_cache.dir
-/home/pilot/Documents/MocapDrone/build/CMakeFiles/rebuild_cache.dir
