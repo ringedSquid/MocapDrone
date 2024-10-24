@@ -1,7 +1,6 @@
 #include <lcm/lcm-cpp.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
-#include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/videoio.hpp>
 #include <math.h>
@@ -23,10 +22,6 @@ using namespace lcm;
 
 #define CORRESPONDANCE_RADIUS 5
 
-#define GAUSSIAN_SD 0.001
-#define GAUSSIAN_KERNEL_S Size(5, 5)
-
-
 void draw_points(Mat *source, vector<Point2d> points) {
     for (int i=0; i<points.size(); i++) {
         circle(*source, points[i], 1, Scalar(0, 0, 255), -1);
@@ -46,6 +41,12 @@ double dist_point_line(Point2d point, vector<double> line) {
     return abs(line[0]*point.x + line[1]*point.y + line[2])/(sqrt(line[0]*line[0] + line[1]*line[1]));
 }
 
+vector<double> get_epipolar_line(Mat fundamental_matrix, Point2d u_point) {
+    Mat p_l = Mat({u_point.x, u_point.y, 1.0}).t();
+    p_l = p_l * fundamental_matrix;
+    return vector<double>{p_l.at<double>(1,1), p_l.at<double>(1,2), p_l.at<double>(1,3)};
+}
+
 Point2d find_corresponding_point(vector<Point2d> points, vector<double> line) {
     double min_dist = 1e9;
     //negative points are invalid (2d screen!)
@@ -62,19 +63,12 @@ Point2d find_corresponding_point(vector<Point2d> points, vector<double> line) {
 
 vector<Point2d> get_points(Mat source) {
     Mat img;
-
     vector<Vec4i> img_hierarchy; //needed for idk what
     vector<vector<Point>> img_contours;
 
-    //Convert to gray -> threshold -> dilate -> find points
+    //Convert to gray -> threshold -> find contours -> find points
     cvtColor(source, img, COLOR_RGB2GRAY); 
     threshold(img, img, 255*0.7, 255, THRESH_BINARY); 
-
-    /*
-    Mat element = getStructuringElement(MORPH_RECT, Size(1, 1), Point(0, 0));
-    dilate(img, img, element);
-    */
-
     findContours(img, img_contours, img_hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE);
     drawContours(source, img_contours, -1, Scalar(0, 255, 0), 1);
 
@@ -104,22 +98,6 @@ vector<Point2d> get_points(Mat source) {
     return img_points;
 }
 
-
-
-vector<vector<float>> points_to_float(vector<Point2d> src) {
-    vector<vector<float>> out(src.size());
-    for (int i=0; i<src.size(); i++) {
-        out[i] = vector<float>(2);
-        out[i][0] = src[i].x;
-        out[i][1] = src[i].y;
-    }
-    return out;
-}
-
-class FeedProcess : public ParallelLoopBody {
-    priv
-}
-
 int main() {
     /*
     Pipeline:
@@ -131,11 +109,9 @@ int main() {
     if (!lcm.good()) {
 		return 1;
     }
-    printf("lcm\n");
+
     VideoCapture cap(0);
     cap.set(CAP_PROP_BUFFERSIZE, 2);
-    printf("cam\n");
-    //namedWindow("pooP");
     if (!cap.isOpened()){ //This section prompt an error message if no video stream is found//
       cout << "No video stream detected" << endl;
       system("pause");
@@ -146,12 +122,12 @@ int main() {
     //Mat feed = imread("img.png", IMREAD_COLOR);
     Mat feed;
     Mat feed_small;
-    //GaussianBlur(feed, feed, GAUSSIAN_KERNEL_S, GAUSSIAN_SD, GAUSSIAN_SD, BORDER_DEFAULT);
-    
+
     //FileStorage fs(CAMERA_DATA_PATH, FileStorage::READ);
 
     //Should be the same for all cameras (unless we use diff cameras from time to time)
     Mat intrinsic_matricies[NUM_CAMS];
+    
     //From fundamental everything else can be derived
     //For a 4 cam system {0->1, 1->2, 2->3, 3->0}
     Mat fundamental_matricies[NUM_CAMS];
@@ -191,11 +167,12 @@ int main() {
     bool DRAW_POINTS = true;
 
     while (true) {
-
         //Read in frame
         cap >> feed;
 
+        //Camera not working
         if (feed.empty()) {
+            cout << "CAMERA ISSUE" << endl;
             break;
         }
 
@@ -206,29 +183,25 @@ int main() {
             if (DRAW_POINTS) draw_points(&feed_images[i], u_points[i]);
         }
         
-        /*
-        //Create epipolar lines + find corresponding points
+        //Grouping points
         for (int i=0; i<NUM_CAMS; i++) {
             int r = (i+1)%NUM_CAMS;
-            if ((u_points[i].size() == 0) || (u_points[r].size() == 0)) {
-                continue;
-            }
-            epipolar_lines[i] = vector<vector<double>>(u_points[i].size());
-            for (int k=0; k<u_points[i].size(); k++) {
-                Point2d p_r;
-                if (CALIBRATE_CAPTURE_POINTS) p_r = u_points[r][0]; 
-                else {
-                    //Find epipolar line equation
-                    Mat p_l = Mat({u_points[i][k].x, u_points[i][k].y, 1.0}).t();
-                    p_l = p_l * fundamental_matricies[i];
-                    epipolar_lines[i][k] = vector<double>{p_l.at<double>(1,1), p_l.at<double>(1,2), p_l.at<double>(1,3)};
-                    //Search through right image for corresponding points
-                    p_r = find_corresponding_point(u_points[r], epipolar_lines[i][k]);
+            if ((u_points[i].size() > 0) && (u_points[r].size() > 0)) {
+                if (CALIBRATE_CAPTURE_POINTS) {
+                    //for calibration, only get the first part
+                    corresponding_points[i].push_back(vector<Point2d>{u_points[i][0], u_points[r][0]});
                 }
-
-                //Add pair of corresponding points
-                if (p_r.x > 0) corresponding_points[i].push_back(vector<Point2d>{u_points[i][k], p_r});
-                
+                else {
+                    //loop through points, find epipolar lines
+                    epipolar_lines[i] = vector<vector<double>>(u_points[i].size());
+                    for (int k=0; k<u_points[i].size(); k++) {
+                        epipolar_lines[i][k] = get_epipolar_line(fundamental_matricies[i], u_points[i][k]);
+                        Point2d p_r = find_corresponding_point(u_points[r], epipolar_lines[i][k]);
+                        if (p_r.x >= 0) {
+                            corresponding_points[i].push_back(vector<Point2d>{u_points[i][k], p_r});
+                        }
+                    }
+                }
             }
             if (DRAW_EPIPOLAR_LINES) draw_lines(&feed_images[r], epipolar_lines[i]);
         }
@@ -247,7 +220,7 @@ int main() {
                 }
             }
         }
-        */
+        
         resize(feed, feed_small, Size(960.0, 540.0), 0, 0);
         imshow("", feed_small);
         char c = (char)waitKey(25);//Allowing 25 milliseconds frame processing time and initiating break condition//
@@ -258,7 +231,7 @@ int main() {
         lcm.publish(CHANNEL_NAME, &out);
         
     }
-
+    
     cap.release();
     return 0;
 }
