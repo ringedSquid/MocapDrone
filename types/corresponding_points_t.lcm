@@ -1,6 +1,6 @@
 package project_types;
 
 struct corresponding_points_t {
-    int32_t pairs;
-    point2d_t points[pairs][2];
+    int32_t n;
+    point2d_pairs_t pairs[n];
 }

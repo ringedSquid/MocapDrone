@@ -7,7 +7,9 @@
 
 #include <iostream>
 
-#include "project_types/image_points_t.hpp"
+#include "project_types/corresponding_points_t.hpp"
+#include "project_types/point2d_pairs_t.hpp"
+#include "project_types/point2d_t.hpp"
 
 using namespace cv;
 using namespace std;
@@ -16,11 +18,13 @@ using namespace lcm;
 
 #define NUM_CAMS 4
 #define CAMERA_DATA_PATH ""
+#define CHANNEL_NAME "CORRESPONDING_POINTS"
 
 #define CORRESPONDANCE_RADIUS 5
 
 #define GAUSSIAN_SD 0.001
 #define GAUSSIAN_KERNEL_S Size(5, 5)
+
 
 Mat draw_points(Mat source, vector<Point2d> points) {
     for (int i=0; i<points.size(); i++) {
@@ -137,17 +141,10 @@ int main() {
     Mat essential_matricies[NUM_CAMS];
     Mat rotation_matricies[NUM_CAMS];
     Mat translation_matricies[NUM_CAMS];
-
-    Mat feed_images[NUM_CAMS];
-    Rect feed_splits[NUM_CAMS] = {Rect(1, 1, 638, 510), Rect(641, 0, 638, 510), Rect(1, 513, 638, 510), Rect(641, 513, 638, 510)};
-    vector<Point2d> u_points[NUM_CAMS];
-    vector<vector<double>> epipolar_lines[NUM_CAMS];
-    //0->1, 1->2, 2->3, 3->0
-    vector<vector<Point2d>> corresponding_points[NUM_CAMS];
     
     //Read in intrinsic matricies, fundamental matricies, find other matricies
     for (int i=0; i<NUM_CAMS; i++) {
-        fs[format("cam%d_intrinsice_matrix", i)] >> intrinsic_matricies[i];
+        fs[format("cam%d_intrinsic_matrix", i)] >> intrinsic_matricies[i];
         fs[format("cam%d_fundamental_matrix", i)] >> fundamental_matricies[i];
         fs[format("cam%d_essential_matrix", i)] >> essential_matricies[i];
         fs[format("cam%d_rotation_matrix", i)] >> rotation_matricies[i];
@@ -156,32 +153,70 @@ int main() {
 
     fs.release();
 
-    //Split images, get points.
-    for (int i=0; i<NUM_CAMS; i++) {
-        feed_images[i] = Mat(feed, feed_splits[i]);
-        u_points[i] = get_points(feed_images[i]);
-        feed_images[i] = draw_points(feed_images[i], u_points[i]);
-    }
+    //Flags
+    bool CALIBRATE_CAPTURE_POINTS = true;
+    bool STREAM_FEED = true;
+    bool DRAW_EPIPOLAR_LINES = true;
+    bool DRAW_POINTS = true;
 
-    //Create epipolar lines + find corresponding points
-    for (int i=0; i<NUM_CAMS; i++) {
-        int r = (i+1)%NUM_CAMS;
-        epipolar_lines[i] = vector<vector<double>>(u_points[i].size());
-        for (int k=0; k<u_points[i].size(); k++) {
-            //Find epipolar line equation
-            Mat p_l = Mat({u_points[i][k].x, u_points[i][k].y, 1.0}).t();
-            p_l = p_l * fundamental_matricies[i];
-            epipolar_lines[i][k] = vector<double>{p_l.at<double>(1,1), p_l.at<double>(1,2), p_l.at<double>(1,3)};
-            //Search through right image for corresponding points
-            Point2d p_r = find_corresponding_point(u_points[r], epipolar_lines[i][k]);
-            if (p_r.x > 0) {
-                corresponding_points[i].push_back(vector<Point2d>{u_points[i][k], p_r});
+    while (true) {
+        Mat feed_images[NUM_CAMS];
+        Rect feed_splits[NUM_CAMS] = {Rect(1, 1, 638, 510), Rect(641, 0, 638, 510), Rect(1, 513, 638, 510), Rect(641, 513, 638, 510)};
+        vector<Point2d> u_points[NUM_CAMS];
+        vector<vector<double>> epipolar_lines[NUM_CAMS];
+        //0->1, 1->2, 2->3, 3->0
+        vector<vector<Point2d>> corresponding_points[NUM_CAMS];
+
+        //Output for lcm
+        corresponding_points_t out;
+        out.n = NUM_CAMS;
+        out.pairs.resize(out.n);
+
+        //Split images, get points.
+        for (int i=0; i<NUM_CAMS; i++) {
+            feed_images[i] = Mat(feed, feed_splits[i]);
+            u_points[i] = get_points(feed_images[i]);
+            if (DRAW_POINTS) feed_images[i] = draw_points(feed_images[i], u_points[i]);
+        }
+
+        //Create epipolar lines + find corresponding points
+        for (int i=0; i<NUM_CAMS; i++) {
+            int r = (i+1)%NUM_CAMS;
+            epipolar_lines[i] = vector<vector<double>>(u_points[i].size());
+            for (int k=0; k<u_points[i].size(); k++) {
+                Point2d p_r;
+                if (CALIBRATE_CAPTURE_POINTS) p_r = u_points[r][0]; 
+                else {
+                    //Find epipolar line equation
+                    Mat p_l = Mat({u_points[i][k].x, u_points[i][k].y, 1.0}).t();
+                    p_l = p_l * fundamental_matricies[i];
+                    epipolar_lines[i][k] = vector<double>{p_l.at<double>(1,1), p_l.at<double>(1,2), p_l.at<double>(1,3)};
+                    //Search through right image for corresponding points
+                    p_r = find_corresponding_point(u_points[r], epipolar_lines[i][k]);
+                }
+
+                //Add pair of corresponding points
+                if (p_r.x > 0) corresponding_points[i].push_back(vector<Point2d>{u_points[i][k], p_r});
+                
+            }
+            if (DRAW_EPIPOLAR_LINES) feed_images[r] = draw_lines(feed_images[r], epipolar_lines[i]);
+        }
+
+        //Write to output datatype
+        for (int i=0; i<NUM_CAMS; i++) {
+            out.pairs[i].n = corresponding_points[i].size();
+            out.pairs[i].points.resize(out.pairs[i].n);
+            //Pairs of points
+            for (int k=0; k<corresponding_points[i].size(); k++) {
+                out.pairs[i].points[k][0].x = corresponding_points[i][k][0].x;
+                out.pairs[i].points[k][0].y = corresponding_points[i][k][0].y;
+
+                out.pairs[i].points[k][1].x = corresponding_points[i][k][1].x;
+                out.pairs[i].points[k][1].y = corresponding_points[i][k][1].y;
             }
         }
-        feed_images[r] = draw_lines(feed_images[r], epipolar_lines[i]);
+
+        lcm.publish(CHANNEL_NAME, &out);
     }
-
-    
-
     return 0;
 }

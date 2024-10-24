@@ -1,0 +1,6 @@
+package project_types;
+
+struct point2d_pairs_t {
+    int32_t n;
+    point2d_t points[n][2];
+}
