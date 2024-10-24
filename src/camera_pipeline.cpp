@@ -3,6 +3,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
+#include <opencv2/videoio.hpp>
 #include <math.h>
 
 #include <iostream>
@@ -17,7 +18,7 @@ using namespace project_types;
 using namespace lcm;
 
 #define NUM_CAMS 4
-#define CAMERA_DATA_PATH ""
+#define CAMERA_DATA_PATH "../data/data.json"
 #define CHANNEL_NAME "CORRESPONDING_POINTS"
 
 #define CORRESPONDANCE_RADIUS 5
@@ -99,6 +100,7 @@ vector<Point2d> get_points(Mat source) {
                 static_cast<float>(img_contours[i][0].y)
             );
         }
+        //printf("%lf, %lf\n", img_points[i].x, img_points[i].y);
     }
 
     return img_points;
@@ -127,12 +129,23 @@ int main() {
     if (!lcm.good()) {
 		return 1;
     }
-    
+    printf("lcm\n");
+    VideoCapture cap(0);
+    printf("cam\n");
+    //namedWindow("pooP");
+    if (!cap.isOpened()){ //This section prompt an error message if no video stream is found//
+      cout << "No video stream detected" << endl;
+      system("pause");
+      return -1;
+   }
+    printf("success\n");
     //This is supposed to be the camera stream 
-    Mat feed = imread("img.png", IMREAD_COLOR);
+    //Mat feed = imread("img.png", IMREAD_COLOR);
+    Mat feed;
     //GaussianBlur(feed, feed, GAUSSIAN_KERNEL_S, GAUSSIAN_SD, GAUSSIAN_SD, BORDER_DEFAULT);
+    
+    //FileStorage fs(CAMERA_DATA_PATH, FileStorage::READ);
 
-    FileStorage fs(CAMERA_DATA_PATH, FileStorage::READ);
     //Should be the same for all cameras (unless we use diff cameras from time to time)
     Mat intrinsic_matricies[NUM_CAMS];
     //From fundamental everything else can be derived
@@ -142,6 +155,7 @@ int main() {
     Mat rotation_matricies[NUM_CAMS];
     Mat translation_matricies[NUM_CAMS];
     
+    /*
     //Read in intrinsic matricies, fundamental matricies, find other matricies
     for (int i=0; i<NUM_CAMS; i++) {
         fs[format("cam%d_intrinsic_matrix", i)] >> intrinsic_matricies[i];
@@ -150,18 +164,19 @@ int main() {
         fs[format("cam%d_rotation_matrix", i)] >> rotation_matricies[i];
         fs[format("cam%d_translation_matrix", i)] >> translation_matricies[i];
     }
+    */
 
-    fs.release();
+    //fs.release();
 
     //Flags
     bool CALIBRATE_CAPTURE_POINTS = true;
     bool STREAM_FEED = true;
-    bool DRAW_EPIPOLAR_LINES = true;
+    bool DRAW_EPIPOLAR_LINES = false;
     bool DRAW_POINTS = true;
 
     while (true) {
         Mat feed_images[NUM_CAMS];
-        Rect feed_splits[NUM_CAMS] = {Rect(1, 1, 638, 510), Rect(641, 0, 638, 510), Rect(1, 513, 638, 510), Rect(641, 513, 638, 510)};
+        Rect feed_splits[NUM_CAMS] = {Rect(1, 1, 958, 538), Rect(961, 1, 958, 538), Rect(1, 541, 958, 538), Rect(961, 541, 958, 538)};
         vector<Point2d> u_points[NUM_CAMS];
         vector<vector<double>> epipolar_lines[NUM_CAMS];
         //0->1, 1->2, 2->3, 3->0
@@ -172,17 +187,33 @@ int main() {
         out.n = NUM_CAMS;
         out.pairs.resize(out.n);
 
+        //Read in frame
+        cap >> feed;
+        printf("cool\n");
+        printf("%d, %d\n", feed.rows, feed.cols);
+
+        if (feed.empty()) {
+            break;
+        }
+
         //Split images, get points.
         for (int i=0; i<NUM_CAMS; i++) {
             feed_images[i] = Mat(feed, feed_splits[i]);
             u_points[i] = get_points(feed_images[i]);
             if (DRAW_POINTS) feed_images[i] = draw_points(feed_images[i], u_points[i]);
         }
+        printf("split\n");
 
         //Create epipolar lines + find corresponding points
         for (int i=0; i<NUM_CAMS; i++) {
+            printf("size: %d\n", u_points[i].size());
             int r = (i+1)%NUM_CAMS;
+            if ((u_points[i].size() == 0) || (u_points[r].size() == 0)) {
+                printf("wow\n");
+                continue;
+            }
             epipolar_lines[i] = vector<vector<double>>(u_points[i].size());
+            printf("init\n");
             for (int k=0; k<u_points[i].size(); k++) {
                 Point2d p_r;
                 if (CALIBRATE_CAPTURE_POINTS) p_r = u_points[r][0]; 
@@ -194,6 +225,7 @@ int main() {
                     //Search through right image for corresponding points
                     p_r = find_corresponding_point(u_points[r], epipolar_lines[i][k]);
                 }
+                printf("cap\n");
 
                 //Add pair of corresponding points
                 if (p_r.x > 0) corresponding_points[i].push_back(vector<Point2d>{u_points[i][k], p_r});
@@ -202,21 +234,37 @@ int main() {
             if (DRAW_EPIPOLAR_LINES) feed_images[r] = draw_lines(feed_images[r], epipolar_lines[i]);
         }
 
+        printf("epipole\n");
+
         //Write to output datatype
         for (int i=0; i<NUM_CAMS; i++) {
             out.pairs[i].n = corresponding_points[i].size();
             out.pairs[i].points.resize(out.pairs[i].n);
             //Pairs of points
             for (int k=0; k<corresponding_points[i].size(); k++) {
-                out.pairs[i].points[k][0].x = corresponding_points[i][k][0].x;
-                out.pairs[i].points[k][0].y = corresponding_points[i][k][0].y;
-
-                out.pairs[i].points[k][1].x = corresponding_points[i][k][1].x;
-                out.pairs[i].points[k][1].y = corresponding_points[i][k][1].y;
+                printf("poop2 %d\n", corresponding_points[i][k].size());
+                if (corresponding_points[i].size() >= 2) {
+                    printf("p1 %d, %d\n", out.pairs[i].n, corresponding_points[i].size());
+                    out.pairs[i].points[k][0].x = corresponding_points[i][k][0].x;
+                    out.pairs[i].points[k][0].y = corresponding_points[i][k][0].y;
+                    printf("p2\n");
+                    out.pairs[i].points[k][1].x = corresponding_points[i][k][1].x;
+                    out.pairs[i].points[k][1].y = corresponding_points[i][k][1].y;
+                }
+                printf("poop4\n");
             }
+            printf("poop3\n");
+        }
+
+        imshow("", feed);
+        char c = (char)waitKey(5);//Allowing 25 milliseconds frame processing time and initiating break condition//
+        if (c == 27){ //If 'Esc' is entered break the loop//
+            break;
         }
 
         lcm.publish(CHANNEL_NAME, &out);
     }
+
+    cap.release();
     return 0;
 }

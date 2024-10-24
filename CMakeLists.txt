@@ -37,3 +37,5 @@ target_include_directories(
 add_executable(camera_pipeline "src/camera_pipeline.cpp")
 lcm_target_link_libraries(camera_pipeline type_definitions-cpp ${LCM_NAMESPACE}lcm ${OpenCV_LIBS})
 
+add_executable(test "src/test.cpp")
+lcm_target_link_libraries(test type_definitions-cpp ${LCM_NAMESPACE}lcm ${OpenCV_LIBS})
