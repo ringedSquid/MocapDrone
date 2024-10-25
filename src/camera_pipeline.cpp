@@ -6,6 +6,8 @@
 #include <math.h>
 
 #include <iostream>
+#include <thread>
+#include <atomic>
 
 #include "project_types/corresponding_points_t.hpp"
 #include "project_types/point2d_pairs_t.hpp"
@@ -21,6 +23,17 @@ using namespace lcm;
 #define CHANNEL_NAME "CORRESPONDING_POINTS"
 
 #define CORRESPONDANCE_RADIUS 5
+
+atomic<bool> videocapture_running(true);
+Mat feed;
+
+void captureFrame(VideoCapture cap) {
+    while(videocapture_running) {
+        Mat buff;
+        cap >> buff;
+        if (!buff.empty()) feed = buff;
+    }
+}
 
 void draw_points(Mat *source, vector<Point2d> points) {
     for (int i=0; i<points.size(); i++) {
@@ -111,17 +124,20 @@ int main() {
     }
 
     VideoCapture cap(0);
-    cap.set(CAP_PROP_BUFFERSIZE, 2);
-    if (!cap.isOpened()){ //This section prompt an error message if no video stream is found//
+    cap.set(CAP_PROP_FRAME_WIDTH, 1920);
+    cap.set(CAP_PROP_FRAME_HEIGHT, 1080);
+    cap.set(CAP_PROP_BUFFERSIZE, 3);
+
+    if (!cap.isOpened()) { 
       cout << "No video stream detected" << endl;
       system("pause");
       return -1;
-   }
+    }
+
+    thread captureThread(captureFrame, ref(cap));
     printf("success\n");
     //This is supposed to be the camera stream 
     //Mat feed = imread("img.png", IMREAD_COLOR);
-    Mat feed;
-    Mat feed_small;
 
     //FileStorage fs(CAMERA_DATA_PATH, FileStorage::READ);
 
@@ -166,9 +182,9 @@ int main() {
     bool DRAW_EPIPOLAR_LINES = false;
     bool DRAW_POINTS = true;
 
-    while (true) {
+    while (videocapture_running) {
         //Read in frame
-        cap >> feed;
+        /*
 
         //Camera not working
         if (feed.empty()) {
@@ -220,18 +236,22 @@ int main() {
                 }
             }
         }
+        */
         
-        resize(feed, feed_small, Size(960.0, 540.0), 0, 0);
-        imshow("", feed_small);
+        if (!feed.empty()) imshow("", feed);
+
         char c = (char)waitKey(25);//Allowing 25 milliseconds frame processing time and initiating break condition//
         if (c == 27){ //If 'Esc' is entered break the loop//
-            break;
+            videocapture_running = false;
         }
 
-        lcm.publish(CHANNEL_NAME, &out);
+        //lcm.publish(CHANNEL_NAME, &out);
         
     }
-    
+
+    captureThread.join();
     cap.release();
+
+    destroyAllWindows();
     return 0;
 }

@@ -12,6 +12,8 @@ include(${LCM_USE_FILE})
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
+find_package(Threads REQUIRED)
+
 
 
 # Handle types
@@ -35,7 +37,12 @@ target_include_directories(
 
 
 add_executable(camera_pipeline "src/camera_pipeline.cpp")
-lcm_target_link_libraries(camera_pipeline type_definitions-cpp ${LCM_NAMESPACE}lcm ${OpenCV_LIBS})
+lcm_target_link_libraries(
+    camera_pipeline 
+    type_definitions-cpp 
+    ${LCM_NAMESPACE}lcm 
+    ${OpenCV_LIBS}
+    ${CMAKE_THREAD_LIBS_INIT}
+)
 
-add_executable(test "src/test.cpp")
-lcm_target_link_libraries(test type_definitions-cpp ${LCM_NAMESPACE}lcm ${OpenCV_LIBS})
+
