@@ -3,6 +3,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/videoio.hpp>
+#include <omp.h>
 #include <math.h>
 
 #include <iostream>
@@ -194,6 +195,7 @@ int main() {
         }
 
         //Split images, get points.
+        #pragma omp parallel for num_threads(4)
         for (int i=0; i<NUM_CAMS; i++) {
             feed_images[i] = Mat(feed, feed_splits[i]);
             u_points[i] = get_points(feed_images[i]);
@@ -253,8 +255,6 @@ int main() {
         //lcm.publish(CHANNEL_NAME, &out);
         
     }
-
-
 
     captureThread.join();
     cap.release();
