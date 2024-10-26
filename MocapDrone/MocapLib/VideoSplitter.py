@@ -5,6 +5,7 @@ from termcolor import colored
 
 class VideoSplitter:
     def __init__(self, cameraIndex, pipes, frame_width=1920, frame_height=1080, debug=False):
+        self.debug = debug
         self.cap = cv.VideoCapture(cameraIndex)
         self.cap.set(cv.CAP_PROP_FOURCC, cv.VideoWriter.fourcc('M','J','P','G'))
         self.cap.set(cv.CAP_PROP_FPS, 60)
@@ -14,43 +15,26 @@ class VideoSplitter:
         self.frame_height = frame_height
         self.box_width = int((frame_width)/2 - 2)
         self.box_height = int((frame_height)/2 - 2)
-        self.process = Process(target=self.run)
         self.pipes = pipes
-
         if (len(pipes) != 4):
             print(colored(f"Amount of pipes {len(pipes)} does not match number of cameras 4", "red"))
             self.exit()
         
-        self.started = False
-        self.ready = False
-        self.debug = debug
-        
+        self.process = Process(target=self.run)
+        self.process.start()
+        if (self.debug):
+            print(colored(f"Process VideoSplitter started with PID {self.process.pid}", "green"))
+
     def __exit__(self, exc_type, exc_value, traceback):
-        self.stop()
+        self.process.terminate()
+        self.process.join()
         self.cap.release()
-
-    def start(self):
-        if (self.started == False):
-            self.started = True
-            self.process.start()
-            if (self.debug):
-                print(colored(f"Process VideoSplitter started with PID {self.process.pid}", "green"))
-            
-
-    def stop(self):
-        if (self.started == True):
-            self.started = False
-            self.process.terminate()
-            self.process.join()
-            if (self.debug):
-                print(colored(f"Process VideoSplitter with PID {self.process.pid} killed", "yellow"))
+        if (self.debug):
+            print(colored(f"Process VideoSplitter with PID {self.process.pid} killed", "yellow"))
 
     def run(self):
-        while self.started:
+        while True:
             retval, frame = self.cap.read()
-            if (self.ready == False) and (type(frame) != int):
-                self.ready = True
-
             boxes = [
                 [1, 1], 
                 [3+self.box_width, 1], 
@@ -83,7 +67,6 @@ if __name__ == "__main__":
 
     vs = VideoSplitter(-1, splitter_out, debug=True)
     vout = VideoViewer(viewer_in, debug=True)
-    vs.start()
 
     while True:
         message = input()
