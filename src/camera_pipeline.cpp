@@ -138,6 +138,7 @@ int main() {
     printf("success\n");
     //This is supposed to be the camera stream 
     //Mat feed = imread("img.png", IMREAD_COLOR);
+    Mat feed_small;
 
     //FileStorage fs(CAMERA_DATA_PATH, FileStorage::READ);
 
@@ -184,12 +185,12 @@ int main() {
 
     while (videocapture_running) {
         //Read in frame
-        /*
+        
 
         //Camera not working
         if (feed.empty()) {
             cout << "CAMERA ISSUE" << endl;
-            break;
+            continue;
         }
 
         //Split images, get points.
@@ -199,6 +200,7 @@ int main() {
             if (DRAW_POINTS) draw_points(&feed_images[i], u_points[i]);
         }
         
+        /*
         //Grouping points
         for (int i=0; i<NUM_CAMS; i++) {
             int r = (i+1)%NUM_CAMS;
@@ -236,9 +238,12 @@ int main() {
                 }
             }
         }
-        */
         
-        if (!feed.empty()) imshow("", feed);
+        */
+        if (!feed.empty()) {
+            resize(feed, feed_small, Size(960, 540));
+            imshow("", feed_small);
+        } 
 
         char c = (char)waitKey(25);//Allowing 25 milliseconds frame processing time and initiating break condition//
         if (c == 27){ //If 'Esc' is entered break the loop//
@@ -248,6 +253,8 @@ int main() {
         //lcm.publish(CHANNEL_NAME, &out);
         
     }
+
+
 
     captureThread.join();
     cap.release();
