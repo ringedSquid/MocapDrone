@@ -6,6 +6,8 @@ import time
 class VideoSplitter:
     def __init__(self, cameraIndex, frame_width=1920, frame_height=1080):
         self.cap = cv.VideoCapture(cameraIndex)
+        self.cap.set(cv.CAP_PROP_FOURCC, cv.VideoWriter.fourcc('M','J','P','G'))
+        self.cap.set(cv.CAP_PROP_FPS, 60)
         self.cap.set(cv.CAP_PROP_FRAME_WIDTH, frame_width)
         self.cap.set(cv.CAP_PROP_FRAME_HEIGHT, frame_height)
         self.feed_images = [0] * 4
@@ -72,7 +74,7 @@ class VideoSplitter:
         return ready
 
 if __name__ == "__main__":
-    vs = VideoSplitter(-1, 1280, 1080).start()
+    vs = VideoSplitter(-1, 1920, 1080).start()
     while (vs.isReady() == False):
         pass
 
