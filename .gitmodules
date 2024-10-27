@@ -1,0 +1,3 @@
+[submodule "MocapDrone_CameraCalibration"]
+	path = MocapDrone_CameraCalibration
+	url = https://github.com/ringedSquid/MocapDrone_CameraCalibration
