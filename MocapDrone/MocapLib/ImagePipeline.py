@@ -13,7 +13,7 @@ class PointEpipolePipeline:
         self.fMat = fMat #fundamental Matrix between left cam and right cam
         self.iMat = iMat
         self.Dist = Dist
-        self.UDistmat, _ = cv.getOptimalNewCameraMatrix(self.iMat, self.Dist, (w, h), 1, (w, h))
+        self.UDistmat, self.roi = cv.getOptimalNewCameraMatrix(self.iMat, self.Dist, (w, h), 1, (w, h))
         self.process = Process(target=self.run)
         self.process.start()
 
@@ -31,6 +31,8 @@ class PointEpipolePipeline:
         while True:
             img = self.pipe_in.recv()
             img = cv.undistort(img, self.iMat, self.Dist, None, self.UDistmat)
+            x, y, w, h = self.roi 
+            img = img[y:y+h, x:x+w]
             points = 0
             if (self.debug):
                 points, img = self.findPoints(img)
