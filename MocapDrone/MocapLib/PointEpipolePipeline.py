@@ -77,24 +77,25 @@ class PointEpipolePipeline:
             p = 0
             if (cv.contourArea(c) > 0):
                 p = (
-                    (moments["m10"] / moments["m00"]),
-                    (moments["m01"] / moments["m00"])
+                    int(moments["m10"] / moments["m00"]),
+                    int(moments["m01"] / moments["m00"])
                 )
             else:
                 c = c[0][0].tolist()
                 p = (c[0], c[1])
             
-            if (self.debug):
-                cv.circle(img, (p[0], p[1]), 1, (0, 0, 255), -1)
-                cv.putText(
-                    img, 
-                    f"({p[0]}, {p[1]}", 
-                    (p[0], p[1]-10),
-                    cv.FONT_HERSHEY_SIMPLEX,
-                    0.3, (0, 0, 255), 1
-                )
+            if (type(p) != int):
+                if (self.debug):
+                    cv.circle(img, (p[0], p[1]), 1, (0, 0, 255), -1)
+                    cv.putText(
+                        img, 
+                        f"({p[0]}, {p[1]}", 
+                        (p[0], p[1]-10),
+                        cv.FONT_HERSHEY_SIMPLEX,
+                        0.3, (0, 0, 255), 1
+                    )
 
-            points.append(p)
+                points.append(p)
         
         points = np.int32(points)
         return points, img
@@ -123,7 +124,7 @@ if __name__ == "__main__":
         pipeline_out[i], null_in[i] = Pipe()
         pipeline_debug_out[i], viewer_in[i] = Pipe()
 
-        with open(f"{DATA_PATH}InternalParams{i}.json", "r") as file:
+        with open(f"{DATA_PATH}InternalParamsA.json", "r") as file:
             data = json.load(file)
 
         pipelines[i] = PointEpipolePipeline(

@@ -30,8 +30,11 @@ class PointTrackCalibrate:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.calibrate()
+        print(self.points)
+        self.process.terminate()
         self.process.join()
+        self.calibrate()
+        
 
     def run(self):
         while True:
@@ -46,6 +49,8 @@ class PointTrackCalibrate:
                     self.points[i].append(temp[i])
 
     def calibrate(self):
+        print("calibrate")
+        print(self.points)
         if len(self.points[0]) >= 8:
             camPoses = []
             for i in range(4):
@@ -228,7 +233,7 @@ if __name__ == "__main__":
         pipeline_out[i], calibration_in[i] = Pipe()
         pipeline_debug_out[i], viewer_in[i] = Pipe()
 
-        with open(f"{DATA_PATH}InternalParams{i}.json", "r") as file:
+        with open(f"{DATA_PATH}InternalParamsA.json", "r") as file:
             data = json.load(file)
             imats.append(data)
 
