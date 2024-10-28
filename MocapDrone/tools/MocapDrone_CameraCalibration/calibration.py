@@ -9,7 +9,7 @@ import json
 frame_width = 1920
 frame_height = 1080
 
-chessboardSize = (9,6)
+chessboardSize = (7,6)
 frameSize = (int((frame_width)/2 - 2), int((frame_height)/2 - 2))
 
 
@@ -30,10 +30,10 @@ objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
 
 
-images = glob.glob('cameraCalibration/images/*.png')
+images = glob.glob('./images/*.png')
 
 for image in images:
-
+    print(image)
     img = cv.imread(image)
     gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 

@@ -116,7 +116,7 @@ if __name__ == "__main__":
 
         pipelines[i] = PointEpipolePipeline(pipeline_in[i], pipeline_out[i], 0, pipeline_debug_out[i], i, debug=True)
     
-    null = NullInput(null_in, debug=True)
+    null = NullInput(null_in, debug=False)
     vs = VideoSplitter(-1, splitter_out, debug=True)
     vout = VideoViewer(viewer_in, debug=True)
 

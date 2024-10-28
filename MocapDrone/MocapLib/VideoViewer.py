@@ -2,6 +2,7 @@ import cv2 as cv
 import numpy as np 
 from multiprocessing import Pipe, Process
 from termcolor import colored
+import time 
 
 class VideoViewer:
     def __init__(self, pipes_in, debug=False):
@@ -18,12 +19,13 @@ class VideoViewer:
 
     
     def run(self):
+        t_old = time.time()
         while True:
             img = 0
             for i in range(4):
                 img_in = self.pipes_in[i].recv()
-                width = int(img_in.shape[1]*0.25)
-                height = int(img_in.shape[0]*0.25)
+                width = int(img_in.shape[1]*0.5)
+                height = int(img_in.shape[0]*0.5)
                 img_in = cv.resize(img_in, (width, height))
                 if (type(img) == int):
                     img = img_in
@@ -32,9 +34,15 @@ class VideoViewer:
             
             if (type(img) != int):
                 #print(img.shape)
+                if (self.debug):
+                    fps = str(int(1/(time.time()-t_old))) 
+                    cv.putText(img, fps, (5, 20), cv.FONT_HERSHEY_SIMPLEX, 1, (100, 255, 0)) 
+
                 cv.imshow(f"Video Out", img)
                 if cv.waitKey(1) == 27:
                     break
+                
+                t_old = time.time()
         
         self.exit()
     
