@@ -1,15 +1,16 @@
 import numpy as np
 import cv2 as cv
 import glob
-import pickle
+import json
 
 
 
 ################ FIND CHESSBOARD CORNERS - OBJECT POINTS AND IMAGE POINTS #############################
+frame_width = 1920
+frame_height = 1080
 
 chessboardSize = (9,6)
-frameSize = (640,480)
-
+frameSize = (int((frame_width)/2 - 2), int((frame_height)/2 - 2))
 
 
 # termination criteria
@@ -62,10 +63,14 @@ cv.destroyAllWindows()
 ret, cameraMatrix, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, frameSize, None, None)
 
 # Save the camera calibration result for later use (we won't worry about rvecs / tvecs)
-pickle.dump((cameraMatrix, dist), open( "calibration.pkl", "wb" ))
-pickle.dump(cameraMatrix, open( "cameraMatrix.pkl", "wb" ))
-pickle.dump(dist, open( "dist.pkl", "wb" ))
+cameraMatrix_s = cameraMatrix.tolist()
+dist_s = dist.tolist()
 
+camera_data = {'Mint' : cameraMatrix_s, 'Dist' : dist_s}
+
+with open("InternalParams_.json", "w") as f:
+    json.dump(camera_data, f)
+    f.close()
 
 ############## UNDISTORTION #####################################################
 
