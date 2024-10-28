@@ -4,13 +4,16 @@ from multiprocessing import Pipe, Process
 from termcolor import colored
 
 class PointEpipolePipeline:
-    def __init__(self, pipe_in, pipe_out, fMat, debug_pipe_out=None, feedNum=0, debug=False):
+    def __init__(self, pipe_in, pipe_out, fMat, iMat, Dist, w=958, h=538, debug_pipe_out=None, feedNum=0, debug=False):
         self.debug = debug
         self.pipe_in = pipe_in
         self.pipe_out = pipe_out
         self.debug_pipe_out = debug_pipe_out
         self.feedNum = feedNum
         self.fMat = fMat #fundamental Matrix between left cam and right cam
+        self.iMat = iMat
+        self.Dist = Dist
+        self.UDistmat, _ = cv.getOptimalNewCameraMatrix(self.iMat, self.Dist, (w, h), 1, (w, h))
         self.process = Process(target=self.run)
         self.process.start()
 
@@ -27,6 +30,7 @@ class PointEpipolePipeline:
     def run(self):
         while True:
             img = self.pipe_in.recv()
+            img = cv.undistort(img, self.iMat, self.Dist, None, self.UDistmat)
             points = 0
             if (self.debug):
                 points, img = self.findPoints(img)
@@ -97,6 +101,9 @@ if __name__ == "__main__":
     from VideoSplitter import VideoSplitter
     from VideoViewer import VideoViewer
     from DebugTools import NullInput
+    import json
+
+    DATA_PATH = "../../data/"
 
     #Pipes
     splitter_out = [0] * 4
@@ -114,7 +121,14 @@ if __name__ == "__main__":
         pipeline_out[i], null_in[i] = Pipe()
         pipeline_debug_out[i], viewer_in[i] = Pipe()
 
-        pipelines[i] = PointEpipolePipeline(pipeline_in[i], pipeline_out[i], 0, pipeline_debug_out[i], i, debug=True)
+        with open(f"{DATA_PATH}InternalParams{i}.json", "r") as file:
+            data = json.load(file)
+
+        pipelines[i] = PointEpipolePipeline(
+            pipeline_in[i], pipeline_out[i], 
+            0, np.array(data["Mint"]), np.array(data["Dist"]), 
+            debug_pipe_out=pipeline_debug_out[i], feedNum=0, debug=True
+        )
     
     null = NullInput(null_in, debug=False)
     vs = VideoSplitter(-1, splitter_out, debug=True)
