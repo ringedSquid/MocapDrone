@@ -24,13 +24,13 @@ class VideoViewer:
             img = 0
             for i in range(4):
                 img_in = self.pipes_in[i].recv()
-                width = int(img_in.shape[1]*0.5)
-                height = int(img_in.shape[0]*0.5)
+                width = int(img_in.shape[1]*0.75)
+                height = int(img_in.shape[0]*0.75)
                 img_in = cv.resize(img_in, (width, height))
                 if (type(img) == int):
                     img = img_in
                 else:
-                    img = cv.hconcat([img, img_in])
+                    img = cv.vconcat([img, img_in])
             
             if (type(img) != int):
                 #print(img.shape)

@@ -17,7 +17,7 @@ boxes = [
                 [3+int((frame_width)/2 - 2), 3+int((frame_height)/2 - 2)]
             ]
             
-feed_num = 1
+feed_num = 0
 
 num=0
 
@@ -43,4 +43,4 @@ while cap.isOpened():
 # Release and destroy all windows before termination
 cap.release()
 
-cv2.destroyAllWindows()
+cv.destroyAllWindows()

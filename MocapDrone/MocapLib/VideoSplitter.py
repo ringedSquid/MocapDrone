@@ -8,7 +8,7 @@ class VideoSplitter:
         self.debug = debug
         self.cap = cv.VideoCapture(cameraIndex)
         self.cap.set(cv.CAP_PROP_FOURCC, cv.VideoWriter.fourcc('M','J','P','G'))
-        self.cap.set(cv.CAP_PROP_FPS, 60)
+        self.cap.set(cv.CAP_PROP_FPS, 30)
         self.cap.set(cv.CAP_PROP_FRAME_WIDTH, frame_width)
         self.cap.set(cv.CAP_PROP_FRAME_HEIGHT, frame_height)
         self.frame_width = frame_width
@@ -65,7 +65,7 @@ if __name__ == "__main__":
         splitter_out.append(parent_conn)
         viewer_in.append(child_conn)
 
-    vs = VideoSplitter(-1, splitter_out, debug=True)
+    vs = VideoSplitter(-1, splitter_out, frame_width=1920, frame_height=1080, debug=True)
     vout = VideoViewer(viewer_in, debug=True)
 
     while True:

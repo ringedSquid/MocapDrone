@@ -9,7 +9,7 @@ import json
 frame_width = 1920
 frame_height = 1080
 
-chessboardSize = (7,6)
+chessboardSize = (7,9)
 frameSize = (int((frame_width)/2 - 2), int((frame_height)/2 - 2))
 
 
@@ -74,7 +74,7 @@ with open("InternalParams_.json", "w") as f:
 
 ############## UNDISTORTION #####################################################
 
-img = cv.imread('cali5.png')
+img = cv.imread('./images/img0.png')
 h,  w = img.shape[:2]
 newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(cameraMatrix, dist, (w,h), 1, (w,h))
 
@@ -86,7 +86,7 @@ dst = cv.undistort(img, cameraMatrix, dist, None, newCameraMatrix)
 # crop the image
 x, y, w, h = roi
 dst = dst[y:y+h, x:x+w]
-cv.imwrite('caliResult1.png', dst)
+cv.imshow(dst)
 
 
 

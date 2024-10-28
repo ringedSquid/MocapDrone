@@ -117,23 +117,24 @@ if __name__ == "__main__":
 
     #pipeline processes
     pipelines = [0] * 4
+    w = 1920
+    h = 1080
 
     for i in range(4):
         splitter_out[i], pipeline_in[i] = Pipe()
         pipeline_out[i], null_in[i] = Pipe()
         pipeline_debug_out[i], viewer_in[i] = Pipe()
 
-        with open(f"{DATA_PATH}InternalParams{i}.json", "r") as file:
+        with open(f"{DATA_PATH}InternalParamsA.json", "r") as file:
             data = json.load(file)
 
         pipelines[i] = PointEpipolePipeline(
             pipeline_in[i], pipeline_out[i], 
             0, np.array(data["Mint"]), np.array(data["Dist"]), 
-            debug_pipe_out=pipeline_debug_out[i], feedNum=0, debug=True
+            debug_pipe_out=pipeline_debug_out[i], w=int(w/2 -2), h=int(h/2 - 2), feedNum=0, debug=True
         )
-    
     null = NullInput(null_in, debug=False)
-    vs = VideoSplitter(-1, splitter_out, debug=True)
+    vs = VideoSplitter(-1, splitter_out, frame_width=w, frame_height=h, debug=True)
     vout = VideoViewer(viewer_in, debug=True)
 
     try:
