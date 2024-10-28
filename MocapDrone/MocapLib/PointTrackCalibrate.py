@@ -30,10 +30,8 @@ class PointTrackCalibrate:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        print(self.points)
         self.process.terminate()
         self.process.join()
-        self.calibrate()
         
 
     def run(self):
@@ -45,8 +43,13 @@ class PointTrackCalibrate:
                     temp.append(pts[0])
 
             if len(temp) == 4:
+                print(len(self.points))
                 for i in range(4):
                     self.points[i].append(temp[i])
+                
+                if (len(self.points[0]) > 10):
+                    break
+        self.calibrate()
 
     def calibrate(self):
         print("calibrate")
@@ -59,9 +62,9 @@ class PointTrackCalibrate:
                 pR = np.array(self.points[r])
 
                 F, _ = cv.findFundamentalMat(pL, pR, cv.FM_RANSAC, 1, 0.99999)
-                E = cv.sfm.essentialFromFundamental(F, self.iMats[i], self.iMats[r])
+                E = cv.essentialFromFundamental(F, self.iMats[i], self.iMats[r])
 
-                R, t = cv.sfm.motionFromEssential(E)
+                R, t = cv.motionFromEssential(E)
                 camPoses.append({"R": R, "t": t})
             
             imagePoints = [np.array(self.points[i]) for i in range(4)]
@@ -78,6 +81,7 @@ class PointTrackCalibrate:
 
             # Visualize the results and block until the window is closed
             self.visualize(camPoses, objectPoints)
+            self.__exit__()
         else:
             print(colored(f"Not enough points for RANSAC (n >= 8) {self.process.pid}", "red"))
 
