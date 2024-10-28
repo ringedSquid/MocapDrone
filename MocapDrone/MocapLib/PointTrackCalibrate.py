@@ -180,16 +180,19 @@ class PointTrackCalibrate:
         numCameras = len(cameraPoses)
         numPoints = len(objectPoints)
         
+        # Flatten the camera parameters and 3D points into a single vector
         initialParams = np.concatenate([
-            np.concatenate([cameraPoses[i]["R"].flatten(), cameraPoses[i]["t"].flatten()]) for i in range(numCameras)
+            np.concatenate([cv.Rodrigues(cameraPoses[i]["R"])[0].flatten(), cameraPoses[i]["t"].flatten()]) for i in range(numCameras)
         ] + [objectPoints.flatten()])
 
         def residuals(params):
+            # Extract camera parameters and object points from params
             residuals = []
             for i in range(numCameras):
-                R = params[i * 6:i * 6 + 3].reshape((3, 3))
+                R = cv.Rodrigues(params[i * 6:i * 6 + 3])[0]  # Convert rotation vector to matrix
                 t = params[i * 6 + 3:i * 6 + 6]
                 for j in range(numPoints):
+                    # No checks for None, assuming all image points have corresponding 3D points
                     projectedPoint, _ = cv.projectPoints(
                         objectPoints[j].reshape(1, 3),
                         R,
@@ -202,14 +205,18 @@ class PointTrackCalibrate:
 
             return np.array(residuals).flatten()
 
+        # Run the optimization
         result = optimize.least_squares(residuals, initialParams, method='lm')
         
+        # Extract optimized camera parameters and object points
         optimizedParams = result.x
         for i in range(numCameras):
-            cameraPoses[i]["R"] = optimizedParams[i * 6:i * 6 + 3].reshape((3, 3))
+            cameraPoses[i]["R"] = cv.Rodrigues(optimizedParams[i * 6:i * 6 + 3])[0]  # Convert back to rotation matrix
             cameraPoses[i]["t"] = optimizedParams[i * 6 + 3:i * 6 + 6]
 
+        # Update object points
         objectPoints[:] = optimizedParams[numCameras * 6:].reshape(numPoints, 3)
+
 
 if __name__ == "__main__":
     from VideoSplitter import VideoSplitter
