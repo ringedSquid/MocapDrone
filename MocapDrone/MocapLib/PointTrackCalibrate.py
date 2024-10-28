@@ -62,9 +62,9 @@ class PointTrackCalibrate:
                 pR = np.array(self.points[r])
 
                 F, _ = cv.findFundamentalMat(pL, pR, cv.FM_RANSAC, 1, 0.99999)
-                E = cv.essentialFromFundamental(F, self.iMats[i], self.iMats[r])
+                E = self.iMats[r].T @ F @ self.iMats[i]
 
-                R, t = cv.motionFromEssential(E)
+                R, t, _ = cv.recoverPose(E, pL, pR, self.iMats[i])
                 camPoses.append({"R": R, "t": t})
             
             imagePoints = [np.array(self.points[i]) for i in range(4)]
